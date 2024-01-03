@@ -1,0 +1,28 @@
+{
+  "name": "boids",
+  "version": "0.1.0",
+  "description": "Demo of Boids program [https://en.wikipedia.org/wiki/Boids] built in Typescript",
+  "main": "boids.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc boids.ts --watch & http-server . -c-1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harryganz/boids.git"
+  },
+  "keywords": [
+    "boids"
+  ],
+  "author": "Harry Ganz <hganz@harryganz.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/harryganz/boids/issues"
+  },
+  "homepage": "https://github.com/harryganz/boids#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0"
+  }
+}
