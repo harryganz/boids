@@ -1,8 +1,6 @@
 // Globals
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-var x = 0;
-var y = Math.floor(canvas.height / 2);
 var Boid = /** @class */ (function () {
     function Boid(x, y, canvasOpts, opts) {
         var _a = opts || {}, vx = _a.vx, vy = _a.vy, size = _a.size, color = _a.color;
@@ -23,10 +21,12 @@ var Boid = /** @class */ (function () {
     };
     Boid.prototype.update = function (dt) {
         var _a = this.canvasOpts, width = _a.width, height = _a.height;
-        if ((this.x + this.vx - this.size) < 0 || (this.x + this.vx + this.size) > width) {
+        // There is some glitch where a boid can get stuck in a wall
+        // need to figure out how this happens
+        if ((this.x - this.size) < 0 || (this.x + this.size) > width) {
             this.vx = -1 * this.vx;
         }
-        if ((this.y + this.vy - this.size) < 0 || (this.y + this.vy + this.size) > height) {
+        if ((this.y - this.size) < 0 || (this.y + this.size) > height) {
             this.vy = -1 * this.vy;
         }
         this.x += this.vx * dt / 1000;
@@ -43,7 +43,7 @@ function init() {
         return;
     // Create 10 boids
     for (var i = 0; i < 10; i++) {
-        var boid = new Boid(Math.random() * canvas.width - 10, Math.random() * canvas.height - 10, { width: canvas.width, height: canvas.height }, { vx: Math.random() * 100 - 50, vy: Math.random() * 100 - 50 });
+        var boid = new Boid(Math.random() * (canvas.width - 20) + 10, Math.random() * (canvas.height - 20) + 10, { width: canvas.width, height: canvas.height }, { vx: Math.random() * 400 - 200, vy: Math.random() * 400 - 200 });
         boids.push(boid);
         boid.draw(ctx);
     }
@@ -54,16 +54,20 @@ var previousTimestamp;
 function step(timestamp) {
     if (ctx == null)
         return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
     if (previousTimestamp === undefined) {
         previousTimestamp = timestamp;
     }
     var dt = timestamp - previousTimestamp; // dt in milliseconds
-    boids.forEach(function (boid) {
-        boid.update(dt);
-        boid.draw(ctx);
-    });
+    // Skip animation if longer than 0.3s, implies 
+    // tab was closed
+    if (dt < 100) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        boids.forEach(function (boid) {
+            boid.update(dt);
+            boid.draw(ctx);
+        });
+    }
     previousTimestamp = timestamp;
     window.requestAnimationFrame(step);
 }
