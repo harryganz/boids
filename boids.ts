@@ -41,16 +41,45 @@ class Boid implements Drawable {
 
 	update(dt: number): void {
 		const {width, height} = this.canvasOpts;
-		// There is some glitch where a boid can get stuck in a wall
-		// need to figure out how this happens
-		if ((this.x - this.size) < 0 || (this.x + this.size) > width) {
-			this.vx = -1*this.vx;
+		if (!this.isCollided(width, height)) {
+			this.x += this.vx * dt/1000;
+			this.y += this.vy * dt/1000;
 		}
-		if ((this.y - this.size) < 0 || (this.y + this.size) > height) {
-			this.vy = -1*this.vy;
+	}
+
+	// Returns true if boid has collided with canvas walls
+	// will also set position to just have bounced off of wall if 
+	// collided
+	// NOTE: Probably should set value to where it would be if it 
+	// had collided
+	private isCollided(width: number, height: number): boolean {
+		let collided = false;
+		// Collided with left side
+		if (this.x + this.vx - this.size < 0) {
+			this.x = 0 + this.size;
+			this.vx = Math.abs(this.vx);
+			collided = true;
 		}
-		this.x += this.vx * dt/1000;
-		this.y += this.vy * dt/1000;
+		// Collided with right side
+		if (this.x + this.vx + this.size > width) {
+			this.x = width - this.size;
+			this.vx = -1 * Math.abs(this.vx);
+			collided = true
+		}
+		// Collided with top
+		if (this.y + this.vy - this.size < 0) {
+			this.y = 0 + this.size;
+			this.vy = Math.abs(this.vy);
+			collided = true;
+		}
+		// Collided with bottom
+		if (this.y + this.vy + this.size > height) {
+			this.y = height - this.size;
+			this.vy = -1 * Math.abs(this.vy);
+			collided = true;
+		}
+
+		return collided;
 	}
 } 
 const boids: Boid[] = [];

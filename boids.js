@@ -32,6 +32,34 @@ var Boid = /** @class */ (function () {
         this.x += this.vx * dt / 1000;
         this.y += this.vy * dt / 1000;
     };
+    Boid.prototype.isCollided = function (width, height) {
+        var collided = false;
+        // Collided with left side
+        if (this.x + this.vx - this.size < 0) {
+            this.x = 0 + this.size;
+            this.vx = -1 * this.vx;
+            collided = true;
+        }
+        // Collided with right side
+        if (this.x + this.vx + this.size > width) {
+            this.x = width - this.size;
+            this.vx = -1 * this.vx;
+            collided = true;
+        }
+        // Collided with top
+        if (this.y + this.vy - this.size < 0) {
+            this.y = 0 + this.size;
+            this.vy = -1 * this.vy;
+            collided = true;
+        }
+        // Collided with bottom
+        if (this.y + this.vy + this.size > height) {
+            this.y = height - this.size;
+            this.vy = -1 * this.vy;
+            collided = true;
+        }
+        return collided;
+    };
     return Boid;
 }());
 var boids = [];
