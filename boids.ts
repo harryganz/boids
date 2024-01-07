@@ -3,6 +3,8 @@
 const canvas : HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
 const avoidFactorInput = document.getElementById('avoid-factor-input') as HTMLInputElement;
+const alignFactorInput = document.getElementById('align-factor-input') as HTMLInputElement;
+const cohereFactorInput = document.getElementById('cohere-factor-input') as HTMLInputElement;
 
 type CanvasOpts = {
 	width: number
@@ -214,6 +216,7 @@ function dist(p1: {x: number, y: number}, p2: {x: number, y: number}): number {
 // boid list global object
 // and global canvas options
 const boids: Boid[] = [];
+const n = 30;
 const canvasOpts: CanvasOpts = {width: canvas.width, height: canvas.height, avoidFactor: parseFloat(avoidFactorInput?.value)/100 * 0.5 || 0.05, alignFactor: 0.01, cohereFactor: 0.01, neighborDist: 100, closeDist: 30, buffer: 55, minSpeed: 30, maxSpeed: 50};
 const boidOpts: BoidOpts = {size: 5};
 
@@ -224,7 +227,7 @@ const boidOpts: BoidOpts = {size: 5};
 function init() : void {
 	if (canvas == null || ctx == null) return;
 	// Create 10 boids
-	for (let i = 0; i < 20; i++) {
+	for (let i = 0; i < n; i++) {
 		const boid = new Boid(Math.random()*(canvas.width - 20) + 10, Math.random()*(canvas.height - 20) + 10, canvasOpts, {...boidOpts, vx: Math.random()*2*canvasOpts.maxSpeed - canvasOpts.maxSpeed, vy: Math.random()*2*canvasOpts.maxSpeed - canvasOpts.maxSpeed}); 
 		boids.push(boid);
 		boid.draw(ctx);
@@ -265,6 +268,18 @@ avoidFactorInput?.addEventListener('change', () => {
 	const val = avoidFactorInput.value;
 	if (val) {
 		canvasOpts.avoidFactor = parseFloat(val)/100 * 0.5;
+	}
+});
+alignFactorInput?.addEventListener('change', () => {
+	const val = alignFactorInput.value;
+	if (val) {
+		canvasOpts.alignFactor = parseFloat(val)/100 * 0.5;
+	}
+});
+cohereFactorInput?.addEventListener('change', () => {
+	const val = cohereFactorInput.value;
+	if (val) {
+		canvasOpts.cohereFactor = parseFloat(val)/100 * 0.5;
 	}
 });
 // Intialize canvas and run animation

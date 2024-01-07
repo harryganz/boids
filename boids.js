@@ -13,6 +13,8 @@ var __assign = (this && this.__assign) || function () {
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 var avoidFactorInput = document.getElementById('avoid-factor-input');
+var alignFactorInput = document.getElementById('align-factor-input');
+var cohereFactorInput = document.getElementById('cohere-factor-input');
 var Boid = /** @class */ (function () {
     /**
      * Boid represents a "bird like object" that engages in flocking behavior with other boids.
@@ -181,6 +183,7 @@ function dist(p1, p2) {
 // boid list global object
 // and global canvas options
 var boids = [];
+var n = 30;
 var canvasOpts = { width: canvas.width, height: canvas.height, avoidFactor: parseFloat(avoidFactorInput === null || avoidFactorInput === void 0 ? void 0 : avoidFactorInput.value) / 100 * 0.5 || 0.05, alignFactor: 0.01, cohereFactor: 0.01, neighborDist: 100, closeDist: 30, buffer: 55, minSpeed: 30, maxSpeed: 50 };
 var boidOpts = { size: 5 };
 /**
@@ -190,7 +193,7 @@ function init() {
     if (canvas == null || ctx == null)
         return;
     // Create 10 boids
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < n; i++) {
         var boid = new Boid(Math.random() * (canvas.width - 20) + 10, Math.random() * (canvas.height - 20) + 10, canvasOpts, __assign(__assign({}, boidOpts), { vx: Math.random() * 2 * canvasOpts.maxSpeed - canvasOpts.maxSpeed, vy: Math.random() * 2 * canvasOpts.maxSpeed - canvasOpts.maxSpeed }));
         boids.push(boid);
         boid.draw(ctx);
@@ -222,6 +225,18 @@ avoidFactorInput === null || avoidFactorInput === void 0 ? void 0 : avoidFactorI
     var val = avoidFactorInput.value;
     if (val) {
         canvasOpts.avoidFactor = parseFloat(val) / 100 * 0.5;
+    }
+});
+alignFactorInput === null || alignFactorInput === void 0 ? void 0 : alignFactorInput.addEventListener('change', function () {
+    var val = alignFactorInput.value;
+    if (val) {
+        canvasOpts.alignFactor = parseFloat(val) / 100 * 0.5;
+    }
+});
+cohereFactorInput === null || cohereFactorInput === void 0 ? void 0 : cohereFactorInput.addEventListener('change', function () {
+    var val = cohereFactorInput.value;
+    if (val) {
+        canvasOpts.cohereFactor = parseFloat(val) / 100 * 0.5;
     }
 });
 // Intialize canvas and run animation
