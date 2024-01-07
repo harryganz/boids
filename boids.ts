@@ -2,6 +2,7 @@
 // Globals
 const canvas : HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
+const avoidFactorInput = document.getElementById('avoid-factor-input') as HTMLInputElement;
 
 type CanvasOpts = {
 	width: number
@@ -213,8 +214,9 @@ function dist(p1: {x: number, y: number}, p2: {x: number, y: number}): number {
 // boid list global object
 // and global canvas options
 const boids: Boid[] = [];
-const canvasOpts: CanvasOpts = {width: canvas.width, height: canvas.height, avoidFactor: 0.05, alignFactor: 0.01, cohereFactor: 0.01, neighborDist: 100, closeDist: 30, buffer: 55, minSpeed: 30, maxSpeed: 50};
+const canvasOpts: CanvasOpts = {width: canvas.width, height: canvas.height, avoidFactor: parseFloat(avoidFactorInput?.value)/100 * 0.5 || 0.05, alignFactor: 0.01, cohereFactor: 0.01, neighborDist: 100, closeDist: 30, buffer: 55, minSpeed: 30, maxSpeed: 50};
 const boidOpts: BoidOpts = {size: 5};
+
 
 /**
  * Initializes the canvas. Should only run on page load.
@@ -258,6 +260,13 @@ function step(timestamp: number) : void {
 	window.requestAnimationFrame(step);
 } 
 
+// Set listeners for inputs
+avoidFactorInput?.addEventListener('change', () => {
+	const val = avoidFactorInput.value;
+	if (val) {
+		canvasOpts.avoidFactor = parseFloat(val)/100 * 0.5;
+	}
+});
 // Intialize canvas and run animation
 window.onload = () => {
 	init();

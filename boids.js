@@ -12,6 +12,7 @@ var __assign = (this && this.__assign) || function () {
 // Globals
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
+var avoidFactorInput = document.getElementById('avoid-factor-input');
 var Boid = /** @class */ (function () {
     /**
      * Boid represents a "bird like object" that engages in flocking behavior with other boids.
@@ -180,7 +181,7 @@ function dist(p1, p2) {
 // boid list global object
 // and global canvas options
 var boids = [];
-var canvasOpts = { width: canvas.width, height: canvas.height, avoidFactor: 0.05, alignFactor: 0.01, cohereFactor: 0.01, neighborDist: 100, closeDist: 30, buffer: 55, minSpeed: 30, maxSpeed: 50 };
+var canvasOpts = { width: canvas.width, height: canvas.height, avoidFactor: parseFloat(avoidFactorInput === null || avoidFactorInput === void 0 ? void 0 : avoidFactorInput.value) / 100 * 0.5 || 0.05, alignFactor: 0.01, cohereFactor: 0.01, neighborDist: 100, closeDist: 30, buffer: 55, minSpeed: 30, maxSpeed: 50 };
 var boidOpts = { size: 5 };
 /**
  * Initializes the canvas. Should only run on page load.
@@ -216,6 +217,13 @@ function step(timestamp) {
     previousTimestamp = timestamp;
     window.requestAnimationFrame(step);
 }
+// Set listeners for inputs
+avoidFactorInput === null || avoidFactorInput === void 0 ? void 0 : avoidFactorInput.addEventListener('change', function () {
+    var val = avoidFactorInput.value;
+    if (val) {
+        canvasOpts.avoidFactor = parseFloat(val) / 100 * 0.5;
+    }
+});
 // Intialize canvas and run animation
 window.onload = function () {
     init();

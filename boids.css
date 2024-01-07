@@ -6,7 +6,17 @@ html, body {
 	padding: 2em;
 }
 #canvas {
-	display: block;
-	margin: auto;
 	border: 1px solid #000;
+}
+.form-group {
+	display: flex;
+	flex-direction: column;
+	margin: 1em 0;
+}
+.form-group.inline {
+	flex-direction: row;
+}
+.form-item {
+	display: flex;
+	gap: 0.5em;
 }
