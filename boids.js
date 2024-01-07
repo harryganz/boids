@@ -1,3 +1,14 @@
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 // Globals
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
@@ -12,7 +23,7 @@ var Boid = /** @class */ (function () {
         this.canvasOpts = canvasOpts;
         this.vx = vx || 0;
         this.vy = vy || 0;
-        this.size = size || 10;
+        this.size = size || 5;
         this.color = color || "#000000";
     }
     /**
@@ -33,17 +44,22 @@ var Boid = /** @class */ (function () {
      */
     Boid.prototype.update = function (dt, neighbors) {
         var _this = this;
-        var _a = this.canvasOpts, width = _a.width, height = _a.height, closeDist = _a.closeDist;
+        var closeDist = this.canvasOpts.closeDist;
         // Separate from close neighbors
         this.separate(neighbors.filter(function (boid) { return dist(_this, boid) < closeDist; }));
         // Align with neighbors
         this.align(neighbors);
+        // Cohere with neighbors
+        this.cohere(neighbors);
+        // Avoid walls
+        this.avoidWalls();
         // Clamp between min and max speed
         this.clampSpeed();
         var timeFactor = dt / 1000;
-        if (!this.isCollided(width, height, this.vx * timeFactor, this.vy * timeFactor)) {
-            this.x += this.vx * dt / 1000;
-            this.y += this.vy * dt / 1000;
+        var _a = [this.vx * timeFactor, this.vy * timeFactor], dx = _a[0], dy = _a[1];
+        if (!this.isCollided(dx, dy)) {
+            this.x += dx;
+            this.y += dy;
         }
     };
     // Returns true if boid has collided with canvas walls
@@ -51,7 +67,8 @@ var Boid = /** @class */ (function () {
     // collided
     // NOTE: Probably should set value to where it would be if it 
     // had collided
-    Boid.prototype.isCollided = function (width, height, dx, dy) {
+    Boid.prototype.isCollided = function (dx, dy) {
+        var width = canvasOpts.width, height = canvasOpts.height;
         var collided = false;
         // Collided with left side
         if (this.x + dx - this.size < 0) {
@@ -79,6 +96,24 @@ var Boid = /** @class */ (function () {
         }
         return collided;
     };
+    Boid.prototype.avoidWalls = function () {
+        var _a = this.canvasOpts, width = _a.width, height = _a.height, buffer = _a.buffer, avoidFactor = _a.avoidFactor;
+        var _b = [0, 0], dx = _b[0], dy = _b[1];
+        if (this.x - 0 < buffer) {
+            dx = this.x - 0;
+        }
+        if (width - this.x < buffer) {
+            dx = this.x - width;
+        }
+        if (this.y - 0 < buffer) {
+            dy = this.y - 0;
+        }
+        if (height - this.y < buffer) {
+            dy = this.y - height;
+        }
+        this.vx += dx * avoidFactor;
+        this.vy += dy * avoidFactor;
+    };
     Boid.prototype.separate = function (closeNeighbors) {
         var _a = [0, 0], dx = _a[0], dy = _a[1];
         var avoidFactor = this.canvasOpts.avoidFactor;
@@ -103,6 +138,21 @@ var Boid = /** @class */ (function () {
         }
         this.vx += (vx_avg - this.vx) * alignFactor;
         this.vy += (vy_avg - this.vy) * alignFactor;
+    };
+    Boid.prototype.cohere = function (neighbors) {
+        var _a = [0, 0, 0], px_avg = _a[0], py_avg = _a[1], n = _a[2];
+        var cohereFactor = this.canvasOpts.cohereFactor;
+        for (var i = 0; i < neighbors.length; i++) {
+            px_avg += neighbors[i].x;
+            py_avg += neighbors[i].y;
+            n++;
+        }
+        if (n > 0) {
+            px_avg = px_avg / n;
+            py_avg = py_avg / n;
+        }
+        this.vx += (px_avg - this.x) * cohereFactor;
+        this.vy += (py_avg - this.y) * cohereFactor;
     };
     // Clamps speed to limits
     Boid.prototype.clampSpeed = function () {
@@ -130,7 +180,8 @@ function dist(p1, p2) {
 // boid list global object
 // and global canvas options
 var boids = [];
-var canvasOpts = { width: canvas.width, height: canvas.height, avoidFactor: 0.1, alignFactor: 0.01, neighborDist: 100, closeDist: 50, minSpeed: 30, maxSpeed: 100 };
+var canvasOpts = { width: canvas.width, height: canvas.height, avoidFactor: 0.05, alignFactor: 0.01, cohereFactor: 0.01, neighborDist: 100, closeDist: 30, buffer: 55, minSpeed: 30, maxSpeed: 50 };
+var boidOpts = { size: 5 };
 /**
  * Initializes the canvas. Should only run on page load.
  */
@@ -138,8 +189,8 @@ function init() {
     if (canvas == null || ctx == null)
         return;
     // Create 10 boids
-    for (var i = 0; i < 10; i++) {
-        var boid = new Boid(Math.random() * (canvas.width - 20) + 10, Math.random() * (canvas.height - 20) + 10, canvasOpts, { vx: Math.random() * 2 * canvasOpts.maxSpeed - canvasOpts.maxSpeed, vy: Math.random() * 2 * canvasOpts.maxSpeed - canvasOpts.maxSpeed });
+    for (var i = 0; i < 20; i++) {
+        var boid = new Boid(Math.random() * (canvas.width - 20) + 10, Math.random() * (canvas.height - 20) + 10, canvasOpts, __assign(__assign({}, boidOpts), { vx: Math.random() * 2 * canvasOpts.maxSpeed - canvasOpts.maxSpeed, vy: Math.random() * 2 * canvasOpts.maxSpeed - canvasOpts.maxSpeed }));
         boids.push(boid);
         boid.draw(ctx);
     }

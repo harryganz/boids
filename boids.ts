@@ -8,10 +8,19 @@ type CanvasOpts = {
 	height: number
 	avoidFactor: number
 	alignFactor: number
+	cohereFactor: number
 	neighborDist: number
 	closeDist: number
+	buffer: number
 	minSpeed: number
 	maxSpeed: number
+}
+
+type BoidOpts = {
+	vx?: number
+	vy?: number
+	size?: number
+	color?: string
 }
 
 class Boid {
@@ -25,14 +34,14 @@ class Boid {
 	/**
 	 * Boid represents a "bird like object" that engages in flocking behavior with other boids.
 	 */
-	constructor(x: number, y: number, canvasOpts: CanvasOpts, opts?: {vx?: number, vy?: number, size?: number, color?: string} ) {
+	constructor(x: number, y: number, canvasOpts: CanvasOpts, opts?: BoidOpts) {
 		const {vx, vy, size, color} = opts || {};
 		this.x = x;
 		this.y = y;
 		this.canvasOpts = canvasOpts;
 		this.vx = vx || 0;
 		this.vy = vy || 0;
-		this.size = size || 10;
+		this.size = size || 5;
 		this.color = color || "#000000";
 	}
 
@@ -54,17 +63,23 @@ class Boid {
 	 * 
 	 */
 	update(dt: number, neighbors: Boid[]): void {
-		const {width, height, closeDist} = this.canvasOpts;
+		const {closeDist} = this.canvasOpts;
 		// Separate from close neighbors
 		this.separate(neighbors.filter(boid => dist(this, boid) < closeDist));
 		// Align with neighbors
 		this.align(neighbors);
+		// Cohere with neighbors
+		this.cohere(neighbors);
+		// Avoid walls
+		this.avoidWalls();
 		// Clamp between min and max speed
 		this.clampSpeed();
+	
 		const timeFactor = dt/1000;
-		if (!this.isCollided(width, height, this.vx*timeFactor, this.vy*timeFactor)) {
-			this.x += this.vx * dt/1000;
-			this.y += this.vy * dt/1000;
+		const [dx, dy] = [this.vx*timeFactor, this.vy*timeFactor];
+		if (!this.isCollided(dx, dy)) {
+			this.x += dx; 
+			this.y += dy;
 		}
 	}
 
@@ -73,7 +88,8 @@ class Boid {
 	// collided
 	// NOTE: Probably should set value to where it would be if it 
 	// had collided
-	private isCollided(width: number, height: number, dx: number, dy: number): boolean {
+	private isCollided(dx: number, dy: number): boolean {
+		const {width, height} = canvasOpts;
 		let collided = false;
 		// Collided with left side
 		if (this.x + dx - this.size < 0) {
@@ -101,6 +117,26 @@ class Boid {
 		}
 
 		return collided;
+	}
+
+	private avoidWalls() {
+		const {width, height, buffer, avoidFactor} = this.canvasOpts;
+		let [dx, dy] = [0, 0];
+		if (this.x - 0 < buffer) {
+			dx = this.x - 0;
+		}	
+		if (width - this.x < buffer) {
+			dx = this.x - width;
+		}
+		if (this.y - 0 < buffer) {
+			dy = this.y - 0;
+		}
+		if (height - this.y < buffer) {
+			dy = this.y - height;
+		}
+
+		this.vx += dx*avoidFactor;
+		this.vy += dy*avoidFactor;
 	}
 
 	private separate(closeNeighbors: Boid[]):void {
@@ -133,6 +169,23 @@ class Boid {
 		this.vy += (vy_avg - this.vy)*alignFactor;
 	}
 
+	private cohere(neighbors: Boid[]): void {
+		let [px_avg, py_avg, n] = [0, 0, 0];
+		const {cohereFactor} = this.canvasOpts;
+		for (let i = 0; i < neighbors.length; i++) {
+			px_avg += neighbors[i].x;
+			py_avg += neighbors[i].y;
+			n++;
+		}
+		if (n > 0) {
+			px_avg = px_avg/n;
+			py_avg = py_avg/n;
+		}
+
+		this.vx += (px_avg - this.x)*cohereFactor;
+		this.vy += (py_avg - this.y)*cohereFactor;
+	}
+
 	// Clamps speed to limits
 	private clampSpeed(): void {
 		const {maxSpeed, minSpeed} = this.canvasOpts;
@@ -160,7 +213,8 @@ function dist(p1: {x: number, y: number}, p2: {x: number, y: number}): number {
 // boid list global object
 // and global canvas options
 const boids: Boid[] = [];
-const canvasOpts: CanvasOpts = {width: canvas.width, height: canvas.height, avoidFactor: 0.1, alignFactor: 0.01, neighborDist: 100, closeDist: 50, minSpeed: 30, maxSpeed: 100};
+const canvasOpts: CanvasOpts = {width: canvas.width, height: canvas.height, avoidFactor: 0.05, alignFactor: 0.01, cohereFactor: 0.01, neighborDist: 100, closeDist: 30, buffer: 55, minSpeed: 30, maxSpeed: 50};
+const boidOpts: BoidOpts = {size: 5};
 
 /**
  * Initializes the canvas. Should only run on page load.
@@ -168,8 +222,8 @@ const canvasOpts: CanvasOpts = {width: canvas.width, height: canvas.height, avoi
 function init() : void {
 	if (canvas == null || ctx == null) return;
 	// Create 10 boids
-	for (let i = 0; i < 10; i++) {
-		const boid = new Boid(Math.random()*(canvas.width - 20) + 10, Math.random()*(canvas.height - 20) + 10, canvasOpts, {vx: Math.random()*2*canvasOpts.maxSpeed - canvasOpts.maxSpeed, vy: Math.random()*2*canvasOpts.maxSpeed - canvasOpts.maxSpeed}); 
+	for (let i = 0; i < 20; i++) {
+		const boid = new Boid(Math.random()*(canvas.width - 20) + 10, Math.random()*(canvas.height - 20) + 10, canvasOpts, {...boidOpts, vx: Math.random()*2*canvasOpts.maxSpeed - canvasOpts.maxSpeed, vy: Math.random()*2*canvasOpts.maxSpeed - canvasOpts.maxSpeed}); 
 		boids.push(boid);
 		boid.draw(ctx);
 	} 
