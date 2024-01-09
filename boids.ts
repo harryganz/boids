@@ -1,11 +1,3 @@
-
-// Globals
-const canvas : HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
-const ctx = canvas.getContext('2d');
-const avoidFactorInput = document.getElementById('avoid-factor-input') as HTMLInputElement;
-const alignFactorInput = document.getElementById('align-factor-input') as HTMLInputElement;
-const cohereFactorInput = document.getElementById('cohere-factor-input') as HTMLInputElement;
-
 type CanvasOpts = {
 	width: number
 	height: number
@@ -18,6 +10,8 @@ type CanvasOpts = {
 	minSpeed: number
 	maxSpeed: number
 }
+
+type OptionalCanvasOpts = Partial<CanvasOpts>;
 
 type BoidOpts = {
 	vx?: number
@@ -92,7 +86,7 @@ class Boid {
 	// NOTE: Probably should set value to where it would be if it 
 	// had collided
 	private isCollided(dx: number, dy: number): boolean {
-		const {width, height} = canvasOpts;
+		const {width, height} = this.canvasOpts;
 		let collided = false;
 		// Collided with left side
 		if (this.x + dx - this.size < 0) {
@@ -213,79 +207,108 @@ function dist(p1: {x: number, y: number}, p2: {x: number, y: number}): number {
 	return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
 }
 
-// boid list global object
-// and global canvas options
-const boids: Boid[] = [];
-const n = 30;
-const canvasOpts: CanvasOpts = {width: canvas.width, height: canvas.height, avoidFactor: parseFloat(avoidFactorInput?.value)/100 * 0.5 || 0.05, alignFactor: 0.01, cohereFactor: 0.01, neighborDist: 100, closeDist: 30, buffer: 55, minSpeed: 30, maxSpeed: 50};
-const boidOpts: BoidOpts = {size: 5};
+class BoidContainer {
+	boids: Boid[];
+	n: number;
+	canvasOpts: CanvasOpts;
+	defaultBoidOpts: BoidOpts;
+	canvas: HTMLCanvasElement;
+	ctx: CanvasRenderingContext2D;
+
+	private previousTimestamp: number | undefined;
+	private running: boolean;
+
+	constructor(canvas: HTMLCanvasElement, n: number = 30, defaultBoidOpts: BoidOpts = {size: 5}) {
+		if (canvas === null) {
+			throw 'Canvas element is null';
+		}
+		const ctx = canvas.getContext('2d');
+		if (!ctx) {
+			throw 'Browser does not support 2D canvas context'
+		}
+		this.canvas = canvas;
+		this.ctx = ctx;
+		this.boids = [];
+		this.n = n;
+		this.canvasOpts = {
+			width: canvas.width,
+			height: canvas.height,
+			avoidFactor: 0.1,
+			alignFactor: 0.05,
+			cohereFactor: 0.05,
+			neighborDist: 100,
+			closeDist: 30,
+			buffer: 100,
+			minSpeed: 20,
+			maxSpeed: 80 
+		};
+		this.defaultBoidOpts = defaultBoidOpts;
+		this.running = false;
+	}
+	
+	init() : void {
+		// Reset canvas, if anything is currently there
+		//
+		this.ctx.beginPath();
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.stroke();
+
+		// Clear boids, if they are there
+		this.boids = [];
+		// Create n boids
+		for (let i = 0; i < this.n; i++) {
+			const boid = new Boid(Math.random()*(this.canvasOpts.width - 20) + 10, Math.random()*(this.canvasOpts.height - 20) + 10, this.canvasOpts, {...this.defaultBoidOpts, vx: Math.random()*2*this.canvasOpts.maxSpeed - this.canvasOpts.maxSpeed, vy: Math.random()*2*this.canvasOpts.maxSpeed - this.canvasOpts.maxSpeed}); 
+			this.boids.push(boid);
+			boid.draw(this.ctx);
+		}
+	}
+
+	private step(timestamp: number) {
+		if (this.previousTimestamp === undefined) {
+			this.previousTimestamp = timestamp;
+		}
+
+		const dt = timestamp - this.previousTimestamp // dt in milliseconds
 
 
-/**
- * Initializes the canvas. Should only run on page load.
- */
-function init() : void {
-	if (canvas == null || ctx == null) return;
-	// Create 10 boids
-	for (let i = 0; i < n; i++) {
-		const boid = new Boid(Math.random()*(canvas.width - 20) + 10, Math.random()*(canvas.height - 20) + 10, canvasOpts, {...boidOpts, vx: Math.random()*2*canvasOpts.maxSpeed - canvasOpts.maxSpeed, vy: Math.random()*2*canvasOpts.maxSpeed - canvasOpts.maxSpeed}); 
-		boids.push(boid);
-		boid.draw(ctx);
-	} 
+		this.ctx.beginPath();
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.stroke();
 
+		this.boids.forEach(boid => {
+			const neighbors =this. boids.filter(neighbor => neighbor !== boid && (dist(boid, neighbor) < this.canvasOpts.neighborDist));
+			boid.update(dt, neighbors);
+			boid.draw(this.ctx);
+		});
+
+		this.previousTimestamp = timestamp;
+		
+		if (this.running) {
+			window.requestAnimationFrame(this.step.bind(this));		
+		}
+	}
+
+	start() {
+		this.running = true;
+		window.requestAnimationFrame(this.step.bind(this));
+	}
+
+	stop() {
+		this.running = false;
+	}
+
+	setCanvasOpts(opts: OptionalCanvasOpts) {
+		this.canvasOpts = Object.assign(this.canvasOpts, opts);
+	}
 }
 
-let previousTimestamp : number | undefined;
 
-/** Creates a step of animation. Will request another animation frame when done with current step.
- * @param timestamp The current animation timestamp in milliseconds
- */
-function step(timestamp: number) : void {
-	if (ctx == null) return;
 
-		if (previousTimestamp === undefined) {
-		previousTimestamp = timestamp;
-	}
-
-	const dt = timestamp - previousTimestamp // dt in milliseconds
-
-	ctx.clearRect(0,0, canvas.width, canvas.height);
-	ctx.beginPath();
-
-	boids.forEach(boid => {
-		const neighbors = boids.filter(neighbor => neighbor !== boid && (dist(boid, neighbor) < canvasOpts.neighborDist));
-		boid.update(dt, neighbors);
-		boid.draw(ctx);
-	});
-
-	previousTimestamp = timestamp;
-	
-	window.requestAnimationFrame(step);
-} 
-
-// Set listeners for inputs
-avoidFactorInput?.addEventListener('change', () => {
-	const val = avoidFactorInput.value;
-	if (val) {
-		canvasOpts.avoidFactor = parseFloat(val)/100 * 0.5;
-	}
-});
-alignFactorInput?.addEventListener('change', () => {
-	const val = alignFactorInput.value;
-	if (val) {
-		canvasOpts.alignFactor = parseFloat(val)/100 * 0.5;
-	}
-});
-cohereFactorInput?.addEventListener('change', () => {
-	const val = cohereFactorInput.value;
-	if (val) {
-		canvasOpts.cohereFactor = parseFloat(val)/100 * 0.5;
-	}
-});
 // Intialize canvas and run animation
 window.onload = () => {
-	init();
-	window.requestAnimationFrame(step);
+	const boidContainer = new BoidContainer(document.getElementById('canvas') as HTMLCanvasElement);
+	boidContainer.init();
+	boidContainer.start();
 }
 
 
