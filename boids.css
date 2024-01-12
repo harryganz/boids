@@ -5,51 +5,7 @@ html, body {
 	background-color: #000000;
 	color: #ffffff;
 }
-#content {
-	padding: 2em;
-}
-#canvas {
-	display: block;
-	border: 1px solid #000;
-	margin: 0 auto;
-	width: 280px;
-	height: 280px;
+
+canvas {
 	background-color: #ffffff;
-}
-@media screen and (min-width: 500px) {
-	#canvas {
-		width: 400px;
-		height: 400px;
-	}
-}
-@media screen and (min-width: 700px) {
-	#canvas {
-		width: 600px;
-		height: 600px;
-	}
-}
-@media screen and (min-width: 1200px) {
-	#canvas {
-		width: 1000px;
-		height: 1000px;
-	}
-}
-.align-center {
-	text-align: center;
-}
-.justify-center {
-	justify-content: center;
-}
-.form-group {
-	display: flex;
-	flex-direction: column;
-	margin: 1em 0;
-}
-.form-group.inline {
-	flex-direction: row;
-	flex-wrap: wrap;
-}
-.form-item {
-	display: flex;
-	gap: 0.5em;
 }
