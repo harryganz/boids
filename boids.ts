@@ -42,6 +42,17 @@ class Boid {
 		this.color = color || "#000000";
 	}
 
+
+	/**
+	 * Set options for this boid
+	 */
+	setOpts(opts: BoidOpts) {
+		this.vx = opts.vx || this.vx;
+		this.vy = opts.vy || this.vy;
+		this.size = opts.size || this.size;
+		this.color = opts.color || this.color; 
+	}
+
 	/**
 	 * Draws the current point
 	 * @param ctx The canvas rendering context.
@@ -233,14 +244,14 @@ class BoidContainer {
 		this.canvasOpts = {
 			width: canvas.width,
 			height: canvas.height,
-			avoidFactor: 0.1,
-			alignFactor: 0.05,
-			cohereFactor: 0.05,
-			neighborDist: 100,
-			closeDist: 30,
-			buffer: 100,
-			minSpeed: 20,
-			maxSpeed: 80 
+			avoidFactor: 0.05,
+			alignFactor: 0.01,
+			cohereFactor: 0.03,
+			neighborDist: Math.floor(canvas.width/5),
+			closeDist: Math.floor(canvas.width/20),
+			buffer: Math.floor(canvas.width/10),
+			minSpeed: Math.floor(canvas.width/100),
+			maxSpeed: Math.floor(canvas.width/20)
 		};
 		this.defaultBoidOpts = defaultBoidOpts;
 		this.running = false;
@@ -300,6 +311,10 @@ class BoidContainer {
 	setCanvasOpts(opts: OptionalCanvasOpts) {
 		this.canvasOpts = Object.assign(this.canvasOpts, opts);
 	}
+
+	setBoidOpts(opts: BoidOpts) {
+		this.boids.forEach(boid => boid.setOpts(opts));
+	}
 }
 
 
@@ -309,6 +324,10 @@ window.onload = () => {
 	const boidContainer = new BoidContainer(document.getElementById('canvas') as HTMLCanvasElement);
 	boidContainer.init();
 	boidContainer.start();
+	document.querySelector('input[name="size"]')?.addEventListener("change", (e) => {
+		const target = e.target as HTMLInputElement;
+		const val = target.value;
+		boidContainer.setBoidOpts({size: parseFloat(val)});
+	});
 }
-
 
