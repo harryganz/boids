@@ -20,6 +20,12 @@ type BoidOpts = {
 	color?: string
 }
 
+type CanvasFactor = "avoid" | "cohere" | "align" | "maxSpeed" | "minSpeed";
+
+const defaultAvoidFactor = 0.05;
+const defaultCohereFactor = 0.03;
+const defaultAlignFactor = 0.02;
+
 class Boid {
 	x: number
 	y: number
@@ -244,9 +250,9 @@ class BoidContainer {
 		this.canvasOpts = {
 			width: canvas.width,
 			height: canvas.height,
-			avoidFactor: 0.05,
-			alignFactor: 0.01,
-			cohereFactor: 0.03,
+			avoidFactor: defaultAvoidFactor,
+			alignFactor: defaultAlignFactor,
+			cohereFactor: defaultCohereFactor,
 			neighborDist: Math.floor(canvas.width/5),
 			closeDist: Math.floor(canvas.width/20),
 			buffer: Math.floor(canvas.width/10),
@@ -287,7 +293,7 @@ class BoidContainer {
 		this.ctx.stroke();
 
 		this.boids.forEach(boid => {
-			const neighbors =this. boids.filter(neighbor => neighbor !== boid && (dist(boid, neighbor) < this.canvasOpts.neighborDist));
+			const neighbors = this.boids.filter(neighbor => neighbor !== boid && (dist(boid, neighbor) < this.canvasOpts.neighborDist));
 			boid.update(dt, neighbors);
 			boid.draw(this.ctx);
 		});
@@ -318,7 +324,6 @@ class BoidContainer {
 }
 
 
-
 // Intialize canvas and run animation
 window.onload = () => {
 	const boidContainer = new BoidContainer(document.getElementById('canvas') as HTMLCanvasElement);
@@ -328,6 +333,21 @@ window.onload = () => {
 		const target = e.target as HTMLInputElement;
 		const val = target.value;
 		boidContainer.setBoidOpts({size: parseFloat(val)});
+	});
+	document.querySelector('input[name="cohereFactor"]')?.addEventListener("change", (e) => {
+		const target = e.target as HTMLInputElement;
+		const val = target.value;
+		boidContainer.setCanvasOpts({cohereFactor: parseFloat(val)/50*defaultCohereFactor});
+	});
+	document.querySelector('input[name="alignFactor"]')?.addEventListener("change", (e) => {
+		const target = e.target as HTMLInputElement;
+		const val = target.value;
+		boidContainer.setCanvasOpts({alignFactor: parseFloat(val)/50*defaultAlignFactor});
+	});
+	document.querySelector('input[name="avoidFactor"]')?.addEventListener("change", (e) => {
+		const target = e.target as HTMLInputElement;
+		const val = target.value;
+		boidContainer.setCanvasOpts({avoidFactor: parseFloat(val)/50*defaultAvoidFactor});
 	});
 }
 

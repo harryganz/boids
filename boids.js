@@ -1,4 +1,7 @@
 "use strict";
+const defaultAvoidFactor = 0.05;
+const defaultCohereFactor = 0.03;
+const defaultAlignFactor = 0.02;
 class Boid {
     /**
      * Boid represents a "bird like object" that engages in flocking behavior with other boids.
@@ -187,9 +190,9 @@ class BoidContainer {
         this.canvasOpts = {
             width: canvas.width,
             height: canvas.height,
-            avoidFactor: 0.05,
-            alignFactor: 0.01,
-            cohereFactor: 0.03,
+            avoidFactor: defaultAvoidFactor,
+            alignFactor: defaultAlignFactor,
+            cohereFactor: defaultCohereFactor,
             neighborDist: Math.floor(canvas.width / 5),
             closeDist: Math.floor(canvas.width / 20),
             buffer: Math.floor(canvas.width / 10),
@@ -248,7 +251,7 @@ class BoidContainer {
 }
 // Intialize canvas and run animation
 window.onload = () => {
-    var _a;
+    var _a, _b, _c, _d;
     const boidContainer = new BoidContainer(document.getElementById('canvas'));
     boidContainer.init();
     boidContainer.start();
@@ -256,5 +259,20 @@ window.onload = () => {
         const target = e.target;
         const val = target.value;
         boidContainer.setBoidOpts({ size: parseFloat(val) });
+    });
+    (_b = document.querySelector('input[name="cohereFactor"]')) === null || _b === void 0 ? void 0 : _b.addEventListener("change", (e) => {
+        const target = e.target;
+        const val = target.value;
+        boidContainer.setCanvasOpts({ cohereFactor: parseFloat(val) / 50 * defaultCohereFactor });
+    });
+    (_c = document.querySelector('input[name="alignFactor"]')) === null || _c === void 0 ? void 0 : _c.addEventListener("change", (e) => {
+        const target = e.target;
+        const val = target.value;
+        boidContainer.setCanvasOpts({ alignFactor: parseFloat(val) / 50 * defaultAlignFactor });
+    });
+    (_d = document.querySelector('input[name="avoidFactor"]')) === null || _d === void 0 ? void 0 : _d.addEventListener("change", (e) => {
+        const target = e.target;
+        const val = target.value;
+        boidContainer.setCanvasOpts({ avoidFactor: parseFloat(val) / 50 * defaultAvoidFactor });
     });
 };
