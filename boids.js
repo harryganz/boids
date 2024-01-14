@@ -226,7 +226,7 @@ class BoidContainer {
         }
     }
     step(timestamp) {
-        if (this.previousTimestamp === undefined) {
+        if (!this.previousTimestamp) {
             this.previousTimestamp = timestamp;
         }
         const dt = timestamp - this.previousTimestamp; // dt in milliseconds
@@ -243,17 +243,32 @@ class BoidContainer {
             window.requestAnimationFrame(this.step.bind(this));
         }
     }
+    setNumber(n) {
+        const d = n - this.n;
+        if (d > 0) {
+            for (let i = 0; i < d; i++) {
+                const boid = new Boid(Math.random() * (this.canvasOpts.width - 20) + 10, Math.random() * (this.canvasOpts.height - 20) + 10, this.canvasOpts, Object.assign(Object.assign({}, this.defaultBoidOpts), { vx: Math.random() * 2 * this.canvasOpts.maxSpeed - this.canvasOpts.maxSpeed, vy: Math.random() * 2 * this.canvasOpts.maxSpeed - this.canvasOpts.maxSpeed }));
+                this.boids.push(boid);
+            }
+        }
+        else {
+            this.boids.splice(0, Math.abs(d));
+        }
+        this.n = n;
+    }
     start() {
         this.running = true;
         window.requestAnimationFrame(this.step.bind(this));
     }
     stop() {
         this.running = false;
+        this.previousTimestamp = null;
     }
     setCanvasOpts(opts) {
         this.canvasOpts = Object.assign(this.canvasOpts, opts);
     }
     setBoidOpts(opts) {
+        this.defaultBoidOpts = Object.assign(this.defaultBoidOpts, opts);
         this.boids.forEach(boid => boid.setOpts(opts));
     }
 }
@@ -270,7 +285,7 @@ function createCanvasOptsHandler(boidContainer, key) {
 }
 // Intialize canvas and run animation
 window.onload = () => {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     const boidContainer = new BoidContainer(document.getElementById('canvas'));
     boidContainer.init();
     boidContainer.start();
@@ -279,9 +294,24 @@ window.onload = () => {
         const val = target.value;
         boidContainer.setBoidOpts({ size: parseFloat(val) });
     });
-    (_b = document.querySelector('input[name="cohereFactor"]')) === null || _b === void 0 ? void 0 : _b.addEventListener("change", createCanvasOptsHandler(boidContainer, "cohereFactor"));
-    (_c = document.querySelector('input[name="alignFactor"]')) === null || _c === void 0 ? void 0 : _c.addEventListener("change", createCanvasOptsHandler(boidContainer, "alignFactor"));
-    (_d = document.querySelector('input[name="avoidFactor"]')) === null || _d === void 0 ? void 0 : _d.addEventListener("change", createCanvasOptsHandler(boidContainer, "avoidFactor"));
-    (_e = document.querySelector('input[name="minSpeed"]')) === null || _e === void 0 ? void 0 : _e.addEventListener("change", createCanvasOptsHandler(boidContainer, "minSpeed"));
-    (_f = document.querySelector('input[name="maxSpeed"]')) === null || _f === void 0 ? void 0 : _f.addEventListener("change", createCanvasOptsHandler(boidContainer, "maxSpeed"));
+    (_b = document.querySelector('input[name="number"]')) === null || _b === void 0 ? void 0 : _b.addEventListener("change", (e) => {
+        const target = e.target;
+        const val = target.value;
+        boidContainer.setNumber(parseInt(val));
+    });
+    (_c = document.querySelector('button#start-btn')) === null || _c === void 0 ? void 0 : _c.addEventListener("mousedown", () => {
+        if (!boidContainer.running) {
+            boidContainer.start();
+        }
+    });
+    (_d = document.querySelector('button#stop-btn')) === null || _d === void 0 ? void 0 : _d.addEventListener("mousedown", () => {
+        if (boidContainer.running) {
+            boidContainer.stop();
+        }
+    });
+    (_e = document.querySelector('input[name="cohereFactor"]')) === null || _e === void 0 ? void 0 : _e.addEventListener("change", createCanvasOptsHandler(boidContainer, "cohereFactor"));
+    (_f = document.querySelector('input[name="alignFactor"]')) === null || _f === void 0 ? void 0 : _f.addEventListener("change", createCanvasOptsHandler(boidContainer, "alignFactor"));
+    (_g = document.querySelector('input[name="avoidFactor"]')) === null || _g === void 0 ? void 0 : _g.addEventListener("change", createCanvasOptsHandler(boidContainer, "avoidFactor"));
+    (_h = document.querySelector('input[name="minSpeed"]')) === null || _h === void 0 ? void 0 : _h.addEventListener("change", createCanvasOptsHandler(boidContainer, "minSpeed"));
+    (_j = document.querySelector('input[name="maxSpeed"]')) === null || _j === void 0 ? void 0 : _j.addEventListener("change", createCanvasOptsHandler(boidContainer, "maxSpeed"));
 };

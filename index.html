@@ -10,6 +10,10 @@
 	<div id="content">
 		<div>
 			<div>
+				<label for="number">Number</label>
+				<input name="number" type="range" min="10" max="60" value="30" />
+			</div>
+			<div>
 				<label for="size">Size</label>
 				<input name="size" type="range" min="2" max="10" value="5"/>
 			</div>
@@ -33,6 +37,11 @@
 			<label for="maxSpeed">Max Speed</label>
 			<input name="maxSpeed" type="range" min="0" max="100" value="50"/>
 		</div>
+		<div>
+				<button id="start-btn">Start</button>
+				<button id="stop-btn">Stop</button>
+		</div>
+
 		<canvas id="canvas" width="600" height="480"/>
 	</div>
 </body>

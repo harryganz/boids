@@ -241,9 +241,9 @@ class BoidContainer {
 	defaultBoidOpts: BoidOpts;
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
+	running: boolean;
 
-	private previousTimestamp: number | undefined;
-	private running: boolean;
+	private previousTimestamp: number | undefined | null;
 
 	constructor(canvas: HTMLCanvasElement, n: number = 30, defaultBoidOpts: BoidOpts = {size: 5}) {
 		const { avoidFactor, alignFactor, cohereFactor, neighborDist, closeDist, minSpeed, maxSpeed, buffer } = defaultCanvasOpts;
@@ -292,7 +292,7 @@ class BoidContainer {
 	}
 
 	private step(timestamp: number) {
-		if (this.previousTimestamp === undefined) {
+		if (!this.previousTimestamp) {
 			this.previousTimestamp = timestamp;
 		}
 
@@ -316,6 +316,19 @@ class BoidContainer {
 		}
 	}
 
+	setNumber(n: number): void {
+		const d = n - this.n;
+		if (d > 0) {
+			for (let i = 0; i < d; i++) {
+				const boid = new Boid(Math.random()*(this.canvasOpts.width - 20) + 10, Math.random()*(this.canvasOpts.height - 20) + 10, this.canvasOpts, {...this.defaultBoidOpts, vx: Math.random()*2*this.canvasOpts.maxSpeed - this.canvasOpts.maxSpeed, vy: Math.random()*2*this.canvasOpts.maxSpeed - this.canvasOpts.maxSpeed}); 
+				this.boids.push(boid);
+			}
+		} else {
+			this.boids.splice(0, Math.abs(d));
+		}
+		this.n = n;
+	}
+
 	start() {
 		this.running = true;
 		window.requestAnimationFrame(this.step.bind(this));
@@ -323,6 +336,7 @@ class BoidContainer {
 
 	stop() {
 		this.running = false;
+		this.previousTimestamp = null;
 	}
 
 	setCanvasOpts(opts: OptionalCanvasOpts) {
@@ -330,6 +344,7 @@ class BoidContainer {
 	}
 
 	setBoidOpts(opts: BoidOpts) {
+		this.defaultBoidOpts = Object.assign(this.defaultBoidOpts, opts);
 		this.boids.forEach(boid => boid.setOpts(opts));
 	}
 }
@@ -356,6 +371,21 @@ window.onload = () => {
 		const target = e.target as HTMLInputElement;
 		const val = target.value;
 		boidContainer.setBoidOpts({size: parseFloat(val)});
+	});
+	document.querySelector('input[name="number"]')?.addEventListener("change", (e) => {
+		const target = e.target as HTMLInputElement;
+		const val = target.value;
+		boidContainer.setNumber(parseInt(val));
+	});
+	document.querySelector('button#start-btn')?.addEventListener("mousedown", () => {
+		if (!boidContainer.running) {
+			boidContainer.start();
+		}
+	});
+	document.querySelector('button#stop-btn')?.addEventListener("mousedown", () => {
+		if (boidContainer.running) {
+			boidContainer.stop();
+		}
 	});
 	document.querySelector('input[name="cohereFactor"]')?.addEventListener("change", createCanvasOptsHandler(boidContainer, "cohereFactor"));
 	document.querySelector('input[name="alignFactor"]')?.addEventListener("change", createCanvasOptsHandler(boidContainer, "alignFactor"));
