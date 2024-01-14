@@ -1,6 +1,4 @@
-type CanvasOpts = {
-	width: number
-	height: number
+type DefaultCanvasOpts = {
 	avoidFactor: number
 	alignFactor: number
 	cohereFactor: number
@@ -11,7 +9,14 @@ type CanvasOpts = {
 	maxSpeed: number
 }
 
+type CanvasOpts = DefaultCanvasOpts & {
+	width: number
+	height: number
+}
+
 type OptionalCanvasOpts = Partial<CanvasOpts>;
+
+type CanvasOptKey = keyof DefaultCanvasOpts;
 
 type BoidOpts = {
 	vx?: number
@@ -20,11 +25,16 @@ type BoidOpts = {
 	color?: string
 }
 
-type CanvasFactor = "avoid" | "cohere" | "align" | "maxSpeed" | "minSpeed";
-
-const defaultAvoidFactor = 0.05;
-const defaultCohereFactor = 0.03;
-const defaultAlignFactor = 0.02;
+const defaultCanvasOpts: DefaultCanvasOpts = {
+	avoidFactor: 0.05,
+	cohereFactor: 0.03,
+	alignFactor: 0.02,
+	neighborDist: 100,
+	closeDist: 33,
+	minSpeed: 20,
+	maxSpeed: 100, 
+	buffer: 100
+};
 
 class Boid {
 	x: number
@@ -236,6 +246,7 @@ class BoidContainer {
 	private running: boolean;
 
 	constructor(canvas: HTMLCanvasElement, n: number = 30, defaultBoidOpts: BoidOpts = {size: 5}) {
+		const { avoidFactor, alignFactor, cohereFactor, neighborDist, closeDist, minSpeed, maxSpeed, buffer } = defaultCanvasOpts;
 		if (canvas === null) {
 			throw 'Canvas element is null';
 		}
@@ -250,14 +261,14 @@ class BoidContainer {
 		this.canvasOpts = {
 			width: canvas.width,
 			height: canvas.height,
-			avoidFactor: defaultAvoidFactor,
-			alignFactor: defaultAlignFactor,
-			cohereFactor: defaultCohereFactor,
-			neighborDist: Math.floor(canvas.width/5),
-			closeDist: Math.floor(canvas.width/20),
-			buffer: Math.floor(canvas.width/10),
-			minSpeed: Math.floor(canvas.width/100),
-			maxSpeed: Math.floor(canvas.width/20)
+			avoidFactor: avoidFactor,
+			alignFactor: alignFactor,
+			cohereFactor: cohereFactor,
+			neighborDist: neighborDist,
+			closeDist: closeDist,
+			buffer: buffer,
+			minSpeed: minSpeed,
+			maxSpeed: maxSpeed 
 		};
 		this.defaultBoidOpts = defaultBoidOpts;
 		this.running = false;
@@ -323,6 +334,18 @@ class BoidContainer {
 	}
 }
 
+function createCanvasOptsHandler(boidContainer: BoidContainer, key: CanvasOptKey): (e: Event) => void {
+	return (e: Event) => {
+		const target = e.target as HTMLInputElement;
+		const val = target.value;
+		if (val) {
+			const opts : OptionalCanvasOpts = {};
+			opts[key] = parseFloat(val)/50 * defaultCanvasOpts[key];
+			boidContainer.setCanvasOpts(opts);
+		}
+	}
+}
+
 
 // Intialize canvas and run animation
 window.onload = () => {
@@ -334,20 +357,10 @@ window.onload = () => {
 		const val = target.value;
 		boidContainer.setBoidOpts({size: parseFloat(val)});
 	});
-	document.querySelector('input[name="cohereFactor"]')?.addEventListener("change", (e) => {
-		const target = e.target as HTMLInputElement;
-		const val = target.value;
-		boidContainer.setCanvasOpts({cohereFactor: parseFloat(val)/50*defaultCohereFactor});
-	});
-	document.querySelector('input[name="alignFactor"]')?.addEventListener("change", (e) => {
-		const target = e.target as HTMLInputElement;
-		const val = target.value;
-		boidContainer.setCanvasOpts({alignFactor: parseFloat(val)/50*defaultAlignFactor});
-	});
-	document.querySelector('input[name="avoidFactor"]')?.addEventListener("change", (e) => {
-		const target = e.target as HTMLInputElement;
-		const val = target.value;
-		boidContainer.setCanvasOpts({avoidFactor: parseFloat(val)/50*defaultAvoidFactor});
-	});
+	document.querySelector('input[name="cohereFactor"]')?.addEventListener("change", createCanvasOptsHandler(boidContainer, "cohereFactor"));
+	document.querySelector('input[name="alignFactor"]')?.addEventListener("change", createCanvasOptsHandler(boidContainer, "alignFactor"));
+	document.querySelector('input[name="avoidFactor"]')?.addEventListener("change", createCanvasOptsHandler(boidContainer, "avoidFactor"));
+	document.querySelector('input[name="minSpeed"]')?.addEventListener("change", createCanvasOptsHandler(boidContainer, "minSpeed"));
+	document.querySelector('input[name="maxSpeed"]')?.addEventListener("change", createCanvasOptsHandler(boidContainer, "maxSpeed"));
 }
 

@@ -1,7 +1,14 @@
 "use strict";
-const defaultAvoidFactor = 0.05;
-const defaultCohereFactor = 0.03;
-const defaultAlignFactor = 0.02;
+const defaultCanvasOpts = {
+    avoidFactor: 0.05,
+    cohereFactor: 0.03,
+    alignFactor: 0.02,
+    neighborDist: 100,
+    closeDist: 33,
+    minSpeed: 20,
+    maxSpeed: 100,
+    buffer: 100
+};
 class Boid {
     /**
      * Boid represents a "bird like object" that engages in flocking behavior with other boids.
@@ -176,6 +183,7 @@ function dist(p1, p2) {
 }
 class BoidContainer {
     constructor(canvas, n = 30, defaultBoidOpts = { size: 5 }) {
+        const { avoidFactor, alignFactor, cohereFactor, neighborDist, closeDist, minSpeed, maxSpeed, buffer } = defaultCanvasOpts;
         if (canvas === null) {
             throw 'Canvas element is null';
         }
@@ -190,14 +198,14 @@ class BoidContainer {
         this.canvasOpts = {
             width: canvas.width,
             height: canvas.height,
-            avoidFactor: defaultAvoidFactor,
-            alignFactor: defaultAlignFactor,
-            cohereFactor: defaultCohereFactor,
-            neighborDist: Math.floor(canvas.width / 5),
-            closeDist: Math.floor(canvas.width / 20),
-            buffer: Math.floor(canvas.width / 10),
-            minSpeed: Math.floor(canvas.width / 100),
-            maxSpeed: Math.floor(canvas.width / 20)
+            avoidFactor: avoidFactor,
+            alignFactor: alignFactor,
+            cohereFactor: cohereFactor,
+            neighborDist: neighborDist,
+            closeDist: closeDist,
+            buffer: buffer,
+            minSpeed: minSpeed,
+            maxSpeed: maxSpeed
         };
         this.defaultBoidOpts = defaultBoidOpts;
         this.running = false;
@@ -249,9 +257,20 @@ class BoidContainer {
         this.boids.forEach(boid => boid.setOpts(opts));
     }
 }
+function createCanvasOptsHandler(boidContainer, key) {
+    return (e) => {
+        const target = e.target;
+        const val = target.value;
+        if (val) {
+            const opts = {};
+            opts[key] = parseFloat(val) / 50 * defaultCanvasOpts[key];
+            boidContainer.setCanvasOpts(opts);
+        }
+    };
+}
 // Intialize canvas and run animation
 window.onload = () => {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
     const boidContainer = new BoidContainer(document.getElementById('canvas'));
     boidContainer.init();
     boidContainer.start();
@@ -260,19 +279,9 @@ window.onload = () => {
         const val = target.value;
         boidContainer.setBoidOpts({ size: parseFloat(val) });
     });
-    (_b = document.querySelector('input[name="cohereFactor"]')) === null || _b === void 0 ? void 0 : _b.addEventListener("change", (e) => {
-        const target = e.target;
-        const val = target.value;
-        boidContainer.setCanvasOpts({ cohereFactor: parseFloat(val) / 50 * defaultCohereFactor });
-    });
-    (_c = document.querySelector('input[name="alignFactor"]')) === null || _c === void 0 ? void 0 : _c.addEventListener("change", (e) => {
-        const target = e.target;
-        const val = target.value;
-        boidContainer.setCanvasOpts({ alignFactor: parseFloat(val) / 50 * defaultAlignFactor });
-    });
-    (_d = document.querySelector('input[name="avoidFactor"]')) === null || _d === void 0 ? void 0 : _d.addEventListener("change", (e) => {
-        const target = e.target;
-        const val = target.value;
-        boidContainer.setCanvasOpts({ avoidFactor: parseFloat(val) / 50 * defaultAvoidFactor });
-    });
+    (_b = document.querySelector('input[name="cohereFactor"]')) === null || _b === void 0 ? void 0 : _b.addEventListener("change", createCanvasOptsHandler(boidContainer, "cohereFactor"));
+    (_c = document.querySelector('input[name="alignFactor"]')) === null || _c === void 0 ? void 0 : _c.addEventListener("change", createCanvasOptsHandler(boidContainer, "alignFactor"));
+    (_d = document.querySelector('input[name="avoidFactor"]')) === null || _d === void 0 ? void 0 : _d.addEventListener("change", createCanvasOptsHandler(boidContainer, "avoidFactor"));
+    (_e = document.querySelector('input[name="minSpeed"]')) === null || _e === void 0 ? void 0 : _e.addEventListener("change", createCanvasOptsHandler(boidContainer, "minSpeed"));
+    (_f = document.querySelector('input[name="maxSpeed"]')) === null || _f === void 0 ? void 0 : _f.addEventListener("change", createCanvasOptsHandler(boidContainer, "maxSpeed"));
 };
