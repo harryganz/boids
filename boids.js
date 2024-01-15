@@ -120,42 +120,56 @@ class Boid {
         this.vy += dy * avoidFactor;
     }
     separate(closeNeighbors) {
+        // Initialize the sum of the x, y distance to neighbors to zero
         let [dx, dy] = [0, 0];
         const { avoidFactor } = this.canvasOpts;
+        // Sum up the x and y distance for all close neighbors
         for (let i = 0; i < closeNeighbors.length; i++) {
             dx += this.x - closeNeighbors[i].x;
             dy += this.y - closeNeighbors[i].y;
         }
+        // Update current boid's x, y velocity component so that
+        // it moves away from close boids
         this.vx += dx * avoidFactor;
         this.vy += dy * avoidFactor;
     }
     align(neighbors) {
+        // Initialize the average x and y velocities and number of neighbors to 0
         let [vx_avg, vy_avg, n] = [0, 0, 0];
         const { alignFactor } = this.canvasOpts;
+        // Calculate sum of velocities and number of neighbors
         for (let i = 0; i < neighbors.length; i++) {
             vx_avg += neighbors[i].vx;
             vy_avg += neighbors[i].vy;
             n++;
         }
+        // Get the average x, y component of neighbor velocity 
         if (n > 0) {
             vx_avg = vx_avg / n;
             vy_avg = vy_avg / n;
         }
+        // Set current boid's velocity so that the closer it is to the average
+        // the less it changes
         this.vx += (vx_avg - this.vx) * alignFactor;
         this.vy += (vy_avg - this.vy) * alignFactor;
     }
     cohere(neighbors) {
+        // Initialize the average x,y position and number of neighbors to zero
         let [px_avg, py_avg, n] = [0, 0, 0];
         const { cohereFactor } = this.canvasOpts;
+        // Sum up the x, y and number of neighbors
         for (let i = 0; i < neighbors.length; i++) {
             px_avg += neighbors[i].x;
             py_avg += neighbors[i].y;
             n++;
         }
         if (n > 0) {
+            // Get the average x, y position
             px_avg = px_avg / n;
             py_avg = py_avg / n;
         }
+        // Set the x, y components of the velocity so that 
+        // the closer to the center of neighbors, the less it changes
         this.vx += (px_avg - this.x) * cohereFactor;
         this.vy += (py_avg - this.y) * cohereFactor;
     }
