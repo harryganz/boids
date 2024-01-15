@@ -44,8 +44,14 @@ class Boid {
 	private size: number
 	private color: string
 	private canvasOpts: CanvasOpts
+
 	/**
 	 * Boid represents a "bird like object" that engages in flocking behavior with other boids.
+	 * 
+	 * @param x The x position on the canvas
+	 * @param y The y position on the canvas
+	 * @param canvasOpts Values shared by all boids on the canvas, such as alignFactor, cohereFactor, maxSpeed, etc.
+	 * @param opts Options for an individual boid, such as size, color, vx, vy, etc.
 	 */
 	constructor(x: number, y: number, canvasOpts: CanvasOpts, opts?: BoidOpts) {
 		const {vx, vy, size, color} = opts || {};
@@ -143,6 +149,7 @@ class Boid {
 		return collided;
 	}
 
+	// Pushes boid away from walls 
 	private avoidWalls() {
 		const {width, height, buffer, avoidFactor} = this.canvasOpts;
 		let [dx, dy] = [0, 0];
@@ -163,6 +170,7 @@ class Boid {
 		this.vy += dy*avoidFactor;
 	}
 
+	// Pushes boid away from close neighbors
 	private separate(closeNeighbors: Boid[]):void {
 		// Initialize the sum of the x, y distance to neighbors to zero
 		let [dx, dy] = [0, 0];
@@ -180,6 +188,7 @@ class Boid {
 		this.vy += dy*avoidFactor;
 	}
 
+	// Aligns boid's velocity vector with neighbors
 	private align(neighbors: Boid[]):void {
 		// Initialize the average x and y velocities and number of neighbors to 0
 		let [vx_avg, vy_avg, n] = [0, 0, 0];
@@ -205,6 +214,7 @@ class Boid {
 		this.vy += (vy_avg - this.vy)*alignFactor;
 	}
 
+	// Pushes boid towards center of neighbors
 	private cohere(neighbors: Boid[]): void {
 		// Initialize the average x,y position and number of neighbors to zero
 		let [px_avg, py_avg, n] = [0, 0, 0];
@@ -264,6 +274,12 @@ class BoidContainer {
 
 	private previousTimestamp: number | undefined | null;
 
+	/**
+	 * BoidContainer  
+	 * @param canvas 
+	 * @param n 
+	 * @param defaultBoidOpts 
+	 */
 	constructor(canvas: HTMLCanvasElement, n: number = 30, defaultBoidOpts: BoidOpts = {size: 5}) {
 		const { avoidFactor, alignFactor, cohereFactor, neighborDist, closeDist, minSpeed, maxSpeed, buffer } = defaultCanvasOpts;
 		if (canvas === null) {
@@ -293,6 +309,9 @@ class BoidContainer {
 		this.running = false;
 	}
 	
+	/**
+	 * Initialize the boids on the canvas
+	 */
 	init() : void {
 		// Reset canvas, if anything is currently there
 		//
@@ -335,6 +354,11 @@ class BoidContainer {
 		}
 	}
 
+	/**
+	 * Sets the number of boids
+	 * 
+	 * @param n The number of boids to be drawn on the canvas
+	 */
 	setNumber(n: number): void {
 		const d = n - this.n;
 		if (d > 0) {
@@ -348,26 +372,49 @@ class BoidContainer {
 		this.n = n;
 	}
 
+	/**
+	 * Start the animation
+	 */
 	start() {
 		this.running = true;
 		window.requestAnimationFrame(this.step.bind(this));
 	}
 
+	/**
+	 * Stop the animation
+	 */
 	stop() {
 		this.running = false;
 		this.previousTimestamp = null;
 	}
 
+	/**
+	 * Sets one or more canvas options to be shared by all boids currently being drawn
+	 * 
+	 * @param opts One of more canvas options to set for all boids, e.g. avoidFactor, cohereFactor, maxSpeed
+	 */
 	setCanvasOpts(opts: OptionalCanvasOpts) {
 		this.canvasOpts = Object.assign(this.canvasOpts, opts);
 	}
 
+	/**
+	 *  Sets one ore more boid options to be shared by all boids currently being drawn
+	 * 
+	 * @param opts One or more boid options to set for all boids, e.g. size, color
+	 */
 	setBoidOpts(opts: BoidOpts) {
 		this.defaultBoidOpts = Object.assign(this.defaultBoidOpts, opts);
 		this.boids.forEach(boid => boid.setOpts(opts));
 	}
 }
 
+/**
+ * Returns a handler which will set the canvas option matching passed in key to passed in value from input field
+ * 
+ * @param boidContainer A boid container instance
+ * @param key The canvas option to create a handler for
+ * @returns A handler which will modify the canvas option to the value from the input
+ */
 function createCanvasOptsHandler(boidContainer: BoidContainer, key: CanvasOptKey): (e: Event) => void {
 	return (e: Event) => {
 		const target = e.target as HTMLInputElement;
