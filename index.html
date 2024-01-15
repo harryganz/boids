@@ -8,41 +8,45 @@
 </head>
 <body>
 	<div id="content">
-		<div>
-			<div>
+		<div id="controls">
+			<div class="control-group">
 				<label for="number">Number</label>
 				<input name="number" type="range" min="10" max="60" value="30" />
 			</div>
-			<div>
+			<div class="control-group">
 				<label for="size">Size</label>
 				<input name="size" type="range" min="2" max="10" value="5"/>
 			</div>
-			<div>
+			<div class="control-group">
 				<label for="avoidFactor">Avoid Factor</label>
 				<input name="avoidFactor" type="range" min="0" max="100" value="50"/>
 			</div>
-			<div>
+			<div class="control-group">
 				<label for="cohereFactor">Cohere Factor</label>
 				<input name="cohereFactor" type="range" min="0" max="100" value="50"/>
 			</div>
-			<div>
+			<div class="control-group">
 				<label for="alignFactor">Align Factor</label>
 				<input name="alignFactor" type="range" min="0" max="100" value="50"/>
+			</div>
+			<div class="control-group">
+					<label for="minSpeed">Min Speed</label>
+					<input name="minSpeed" type="range" min="0" max="100" value="50"/>
+			</div>
+			<div class="control-group">
+				<label for="maxSpeed">Max Speed</label>
+				<input name="maxSpeed" type="range" min="0" max="100" value="50"/>
+			</div>
 		</div>
-		<div>
-				<label for="minSpeed">Min Speed</label>
-				<input name="minSpeed" type="range" min="0" max="100" value="50"/>
+		
+		<div id="canvas-container">
+			<canvas id="canvas" width="600" height="480"/>
 		</div>
-		<div>
-			<label for="maxSpeed">Max Speed</label>
-			<input name="maxSpeed" type="range" min="0" max="100" value="50"/>
-		</div>
-		<div>
-				<button id="start-btn">Start</button>
-				<button id="stop-btn">Stop</button>
+		<div id="play-buttons">
+			<button id="start-btn">Start</button>
+			<button id="stop-btn">Stop</button>
 		</div>
 
-		<canvas id="canvas" width="600" height="480"/>
 	</div>
 </body>
 </html>

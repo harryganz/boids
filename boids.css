@@ -6,6 +6,37 @@ html, body {
 	color: #ffffff;
 }
 
-canvas {
+#content {
+	width: 800px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+}
+
+#controls {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	padding-bottom: 2em;
+	gap: 1em 0.5em;
+}
+
+.control-group {
+	display: flex;
+	align-items: center;
+}
+
+
+#canvas {
+	display: block;
+	margin: 0 auto;
 	background-color: #ffffff;
 }
+
+#play-buttons {
+	padding-top: 1em;
+	display: flex;
+	justify-content: center;
+	gap: 0 2em;
+}
+
